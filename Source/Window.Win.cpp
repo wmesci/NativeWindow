@@ -6,6 +6,36 @@
 
 using namespace tk;
 
+thread_local char BUFFER1[4096];
+thread_local char BUFFER2[4096];
+
+const TCHAR* ToNative(const std::string& str)
+{
+    memset(BUFFER1, 0, sizeof(BUFFER1));
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, (wchar_t*)BUFFER1, sizeof(BUFFER1));
+#ifdef UNICODE
+    return (wchar_t*)BUFFER1;
+#else
+    memset(BUFFER2, 0, sizeof(BUFFER2));
+    WideCharToMultiByte(CP_ACP, 0, (wchar_t*)BUFFER1, -1, (char*)BUFFER2, sizeof(BUFFER2), NULL, NULL);
+    return (char*)BUFFER2;
+#endif
+}
+
+std::string FromNative(const TCHAR* str)
+{
+#ifdef UNICODE
+    memset(BUFFER1, 0, sizeof(BUFFER1));
+    WideCharToMultiByte(CP_UTF8, 0, str, -1, (char*)BUFFER1, sizeof(BUFFER1), NULL, NULL);
+#else
+    memset(BUFFER1, 0, sizeof(BUFFER1));
+    MultiByteToWideChar(CP_ACP, 0, str, -1, (wchar_t*)BUFFER1, sizeof(BUFFER1));
+    memset(BUFFER2, 0, sizeof(BUFFER2));
+    WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)BUFFER1, -1, (char*)BUFFER2, sizeof(BUFFER2), NULL, NULL);
+#endif
+    return std::string(BUFFER2);
+}
+
 namespace tk
 {
 void RunLoop(Application* app, Window* win);
@@ -275,7 +305,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 MouseWheelEvent e;
                 e.type = EventType::MouseWheel;
                 e.WheelX = 0;
-                e.WheelY = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+                e.WheelY = (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
                 DispatchEvent(win, &e);
             }
             break;
@@ -339,7 +369,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             case WM_SYSKEYUP:
             {
                 uint8_t modifiers = translateKeyModifiers();
-                Keys key = translateKey(wParam);
+                Keys key = translateKey((uint8_t)wParam);
                 if (Keys::Print == key && 0x3 == ((uint32_t)(lParam) >> 30))
                 {
                     // VK_SNAPSHOT doesn't generate keydown event. Fire on down event when previous
@@ -408,7 +438,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 Event e;
                 e.type = EventType::Closed;
                 DispatchEvent(win, &e);
-                if (Application::GetMainWindow() == win)
+                if (Application::Current()->GetMainWindow() == win)
                     PostQuitMessage(0);
                 break;
             }
@@ -452,10 +482,10 @@ void Window::OnStyleChanged()
 bool Window::CreateImpl(Window* parent, std::string title, const Rect<float>& rect)
 {
     int32_t win_style = WS_OVERLAPPEDWINDOW;
-    WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, ::WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, APISTR("Window"), NULL};
+    WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, ::WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, TEXT("Window"), NULL};
     RegisterClassEx(&wc);
     float dpi = GetDpiForSystem() / (float)USER_DEFAULT_SCREEN_DPI;
-    HWND hWnd = CreateWindowEx(WS_EX_LAYERED, T("Window"), ToNative(title), win_style, (int)(rect.X * dpi), (int)(rect.Y * dpi), (int)(rect.Width * dpi), (int)(rect.Height * dpi), parent == nullptr ? NULL : (HWND)(parent->GetHandle()), NULL, wc.hInstance, this);
+    HWND hWnd = CreateWindowEx(WS_EX_LAYERED, TEXT("Window"), ToNative(title), win_style, (int)(rect.X * dpi), (int)(rect.Y * dpi), (int)(rect.Width * dpi), (int)(rect.Height * dpi), parent == nullptr ? NULL : (HWND)(parent->GetHandle()), NULL, wc.hInstance, this);
 
     this->nativeWindow = new NativeWindow(this, hWnd);
 
