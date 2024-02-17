@@ -12,7 +12,7 @@ file(GLOB_RECURSE TARGET_SOURCE_FILES Source/*.cpp Source/*.mm)
 add_library(${TARGET_NAME} STATIC ${TARGET_SOURCE_FILES})
 
 # for test
-option(${TARGET_NAME}_BUILD_TEST "Built ${TARGET_NAME} Test" ON)
+option(${TARGET_NAME}_BUILD_TEST "Built ${TARGET_NAME} Test" OFF)
 
 if(${TARGET_NAME}_BUILD_TEST)
     message("Built ${TARGET_NAME} Test")

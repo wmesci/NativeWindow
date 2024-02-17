@@ -17,11 +17,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     Application app;
 
     TestWindow win;
-    // win.AddStyle(WINDOW_NOTITLE | WINDOW_TITLE_CUSTOM);
-    // win.RemoveStyle(WINDOW_RESIZABLE);
-    // win.RemoveStyle(WINDOW_BUTTON_MAX);
+    //win.AddStyle(WINDOW_NOTITLE);
+    win.RemoveStyle(WINDOW_RESIZABLE);
+    win.RemoveStyle(WINDOW_BUTTON_MAX);
     win.Create();
-    // win->SetTopMost(true);
+    win.SetTopMost(true);
     win.MoveToCenter();
     app.Run(&win);
 
