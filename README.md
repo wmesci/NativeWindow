@@ -1,6 +1,8 @@
 ## NativeWindow
 > Create and manipulate Native Window in a unified way on both Windows and Mac systems.
 
+[![CMake on multiple platforms](https://github.com/wmesci/NativeWindow/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/wmesci/NativeWindow/actions/workflows/cmake-multi-platform.yml)
+
 ```cpp
 #include "Window.h"
 #include "Application.h"
