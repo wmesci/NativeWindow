@@ -9,7 +9,11 @@ class Window;
 class Application
 {
 public:
+    static Application* Current();
+
     Application();
+
+    ~Application();
 
     void InvokeAsync(const std::function<void()>& f);
 

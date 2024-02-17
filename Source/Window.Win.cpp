@@ -1,10 +1,13 @@
 ﻿#ifdef _WIN32
+#include <algorithm>
 #include <Windows.h>
 #include "Window.h"
 #include "Application.h"
 
 using namespace tk;
 
+namespace tk
+{
 void RunLoop(Application* app, Window* win);
 
 struct NativeWindow
@@ -44,7 +47,7 @@ static const TranslateKeyModifiers s_translateKeyModifiers[8] =
 static uint8_t translateKeyModifiers()
 {
     uint8_t modifiers = 0;
-    for (uint32_t ii = 0; ii < ArraySize(s_translateKeyModifiers); ++ii)
+    for (uint32_t ii = 0; ii < sizeof(s_translateKeyModifiers) / sizeof(TranslateKeyModifiers); ++ii)
     {
         const TranslateKeyModifiers& tkm = s_translateKeyModifiers[ii];
         modifiers |= 0 > GetKeyState(tkm.m_vk) ? (uint8_t)tkm.m_modifier : (uint8_t)ModifierKey::None;
@@ -414,6 +417,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
+} // namespace tk
 
 void Window::OnStyleChanged()
 {
@@ -451,7 +455,7 @@ bool Window::CreateImpl(Window* parent, std::string title, const Rect<float>& re
     WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, ::WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, APISTR("Window"), NULL};
     RegisterClassEx(&wc);
     float dpi = GetDpiForSystem() / (float)USER_DEFAULT_SCREEN_DPI;
-    HWND hWnd = CreateWindowEx(WS_EX_LAYERED, APISTR("Window"), ToNative(title), win_style, (int)(rect.X * dpi), (int)(rect.Y * dpi), (int)(rect.Width * dpi), (int)(rect.Height * dpi), parent == nullptr ? NULL : (HWND)(parent->GetHandle()), NULL, wc.hInstance, this);
+    HWND hWnd = CreateWindowEx(WS_EX_LAYERED, T("Window"), ToNative(title), win_style, (int)(rect.X * dpi), (int)(rect.Y * dpi), (int)(rect.Width * dpi), (int)(rect.Height * dpi), parent == nullptr ? NULL : (HWND)(parent->GetHandle()), NULL, wc.hInstance, this);
 
     this->nativeWindow = new NativeWindow(this, hWnd);
 
@@ -493,7 +497,7 @@ void Window::ShowDialog()
 
     Show();
 
-    RunLoop(this);
+    RunLoop(Application::Current(), this);
 
     EnableWindow(parent, enable);
     SetForegroundWindow(parent);
@@ -607,7 +611,7 @@ void Window::SetFocus(bool value)
 std::string Window::GetTitle() const
 {
     int32_t len = GetWindowTextLength((HWND)GetHandle());
-    APICHAR buffer[4096];
+    TCHAR buffer[4096];
     GetWindowText((HWND)GetHandle(), buffer, len + 1);
     buffer[len] = 0;
     return FromNative(buffer);

@@ -6,6 +6,7 @@
 
 using namespace tk;
 
+Application* app = nullptr;
 Window* mainWindow = nullptr;
 std::map<Window*, std::function<void()>> windows;
 
@@ -65,9 +66,20 @@ void UnRegisterWindow(Window* win)
         windows.erase(it);
 }
 
+Application* Application::Current()
+{
+    return app;
+}
+
 Application::Application()
 {
+    app = this;
     AppInit();
+}
+
+Application::~Application()
+{
+    app = nullptr;
 }
 
 Window* Application::GetMainWindow()
