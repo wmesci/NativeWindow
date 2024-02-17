@@ -3,7 +3,9 @@
 #include "Window.h"
 #include "Application.h"
 
-void RunLoop(Window* win);
+using namespace tk;
+
+void RunLoop(Application* app, Window* win);
 
 struct NativeWindow
 {

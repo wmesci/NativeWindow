@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "Window.h"
 
+using namespace tk;
+
 DWORD mainThread;
 
 static const UINT WM_INVOKE = WM_USER + 0x121;
